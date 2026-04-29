@@ -4,3 +4,5 @@ dataset_generation.txt
 .venv
 __pycache__
 secure_search.php
+unnormalized_blog_data_wpasswords.csv
+password_generator.py
