@@ -5,11 +5,10 @@ require_admin();
 
 $expected_tables = [
     "Users" => ["UserID", "Username", "PasswordHash", "Email", "Admin"],
-    "Posts" => ["PostID", "Title", "Content", "UserID"],
-    "Comments" => ["CommentID", "Comment", "PostID"],
     "Categories" => ["CategoryID", "Category"],
+    "Posts" => ["PostID", "Title", "Content", "UserID", "CategoryID"],
+    "Comments" => ["CommentID", "Comment", "PostID", "UserID"],
     "Tags" => ["TagID", "Tag"],
-    "PostCategories" => ["PostCategoryID", "CategoryID", "PostID"],
     "PostTags" => ["PostTagID", "TagID", "PostID"]
 ];
 

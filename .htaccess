@@ -1,2 +1,9 @@
 RewriteEngine On
 RewriteRule ^admin-dashboard\.html$ honeypot.php [L]
+
+<FilesMatch "^(config\.local\.php|blocked_ips\.json|login_attempts\.json|\.env.*|.*\.csv|.*\.py|.*\.md)$">
+    Require all denied
+</FilesMatch>
+
+RedirectMatch 404 /\.git
+RedirectMatch 404 /\.vscode

@@ -10,13 +10,14 @@ if ($post_id !== "") {
 }
 
 if ($post && $_SERVER["REQUEST_METHOD"] === "POST" && table_exists("Comments")) {
+    require_login("Log in to add a comment.");
     require_valid_csrf("post.php?id=" . urlencode($post["PostID"]));
 
     $comment = $_POST["comment"] ?? "";
 
     if ($comment !== "") {
-        $sql = "INSERT INTO Comments (PostID, Comment) VALUES (?, ?)";
-        if (db_query($sql, [(int) $post["PostID"], $comment])) {
+        $sql = "INSERT INTO Comments (PostID, UserID, Comment) VALUES (?, ?, ?)";
+        if (db_query($sql, [(int) $post["PostID"], (int) current_user_id(), $comment])) {
             set_flash("Comment added.", "success");
         } else {
             set_flash("Comment could not be added.", "error");
@@ -27,8 +28,9 @@ if ($post && $_SERVER["REQUEST_METHOD"] === "POST" && table_exists("Comments")) 
 }
 
 if ($post && table_exists("Comments")) {
-    $comment_sql = "SELECT c.CommentID, c.Comment
+    $comment_sql = "SELECT c.CommentID, c.Comment, c.UserID, u.Username
         FROM Comments c
+        LEFT JOIN Users u ON c.UserID = u.UserID
         WHERE c.PostID = ?
         ORDER BY c.CommentID DESC";
     $comment_result = db_query($comment_sql, [(int) $post["PostID"]]);
@@ -76,6 +78,7 @@ render_header($post ? $post["Title"] : "Post Not Found");
                 <div class="comment-list">
                     <?php foreach ($comments as $comment): ?>
                         <div class="comment">
+                            <strong><?php echo h($comment["Username"] ?? ("User #" . $comment["UserID"])); ?></strong>
                             <p><?php echo nl2br(h($comment["Comment"])); ?></p>
                         </div>
                     <?php endforeach; ?>
@@ -84,16 +87,20 @@ render_header($post ? $post["Title"] : "Post Not Found");
                 <p>No comments yet.</p>
             <?php endif; ?>
 
-            <form class="form" action="post.php?id=<?php echo h($post["PostID"]); ?>" method="post">
-                <?php echo csrf_field(); ?>
-                <div class="form-row">
-                    <label for="comment">Add a comment</label>
-                    <textarea id="comment" name="comment" required></textarea>
-                </div>
-                <div>
-                    <input type="submit" value="Post Comment">
-                </div>
-            </form>
+            <?php if (is_logged_in()): ?>
+                <form class="form" action="post.php?id=<?php echo h($post["PostID"]); ?>" method="post">
+                    <?php echo csrf_field(); ?>
+                    <div class="form-row">
+                        <label for="comment">Add a comment</label>
+                        <textarea id="comment" name="comment" required></textarea>
+                    </div>
+                    <div>
+                        <input type="submit" value="Post Comment">
+                    </div>
+                </form>
+            <?php else: ?>
+                <p><a href="login.php">Log in</a> to add a comment.</p>
+            <?php endif; ?>
         </section>
     <?php endif; ?>
 <?php endif; ?>

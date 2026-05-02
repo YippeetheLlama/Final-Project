@@ -159,7 +159,8 @@ function require_valid_csrf($redirect = "index.php") {
 
 function login_throttle_seconds_remaining() {
     $lock_until = $_SESSION["login_lock_until"] ?? 0;
-    return max(0, $lock_until - time());
+    $ip_lock_until = login_attempt_record()["lock_until"] ?? 0;
+    return max(0, $lock_until - time(), $ip_lock_until - time());
 }
 
 function record_failed_login() {
@@ -168,10 +169,82 @@ function record_failed_login() {
     if ($_SESSION["login_failures"] >= 5) {
         $_SESSION["login_lock_until"] = time() + 300;
     }
+
+    $attempts = read_login_attempts();
+    $ip = client_ip();
+    if ($ip !== "unknown") {
+        $record = $attempts[$ip] ?? ["failures" => 0, "lock_until" => 0];
+        $record["failures"] = ($record["failures"] ?? 0) + 1;
+        $record["last_failure"] = time();
+
+        if ($record["failures"] >= 5) {
+            $record["lock_until"] = time() + 300;
+        }
+
+        $attempts[$ip] = $record;
+        write_login_attempts($attempts);
+    }
 }
 
 function clear_failed_login() {
     unset($_SESSION["login_failures"], $_SESSION["login_lock_until"]);
+
+    $ip = client_ip();
+    if ($ip !== "unknown") {
+        $attempts = read_login_attempts();
+        unset($attempts[$ip]);
+        write_login_attempts($attempts);
+    }
+}
+
+function login_attempts_file() {
+    return __DIR__ . "/login_attempts.json";
+}
+
+function read_login_attempts() {
+    $file = login_attempts_file();
+    if (!file_exists($file)) {
+        return [];
+    }
+
+    $data = json_decode(file_get_contents($file), true);
+    return is_array($data) ? $data : [];
+}
+
+function write_login_attempts($attempts) {
+    $handle = fopen(login_attempts_file(), "c+");
+    if (!$handle) {
+        error_log("Unable to open login attempts file.");
+        return false;
+    }
+
+    flock($handle, LOCK_EX);
+    ftruncate($handle, 0);
+    rewind($handle);
+    fwrite($handle, json_encode($attempts, JSON_PRETTY_PRINT));
+    fflush($handle);
+    flock($handle, LOCK_UN);
+    fclose($handle);
+
+    return true;
+}
+
+function login_attempt_record() {
+    $ip = client_ip();
+    if ($ip === "unknown") {
+        return [];
+    }
+
+    $attempts = read_login_attempts();
+    $record = $attempts[$ip] ?? [];
+
+    if (($record["lock_until"] ?? 0) > 0 && $record["lock_until"] <= time()) {
+        unset($attempts[$ip]);
+        write_login_attempts($attempts);
+        return [];
+    }
+
+    return $record;
 }
 
 function table_exists($table) {
@@ -249,12 +322,12 @@ function normalize_id_list($value) {
 }
 
 function get_post_category_ids($post_id) {
-    if (!table_exists("PostCategories") || !ctype_digit((string) $post_id)) {
+    if (!ctype_digit((string) $post_id)) {
         return [];
     }
 
     $ids = [];
-    $result = db_query("SELECT CategoryID FROM PostCategories WHERE PostID = ?", [(int) $post_id]);
+    $result = db_query("SELECT CategoryID FROM Posts WHERE PostID = ?", [(int) $post_id]);
     if ($result) {
         while ($row = $result->fetch_assoc()) {
             $ids[] = $row["CategoryID"];
@@ -281,16 +354,17 @@ function get_post_tag_ids($post_id) {
 }
 
 function sync_post_categories($post_id, $category_ids) {
-    if (!table_exists("PostCategories") || !ctype_digit((string) $post_id)) {
+    if (!ctype_digit((string) $post_id)) {
+        return;
+    }
+
+    $category_ids = normalize_id_list($category_ids);
+    if (!$category_ids) {
         return;
     }
 
     $post_id = (int) $post_id;
-    db_query("DELETE FROM PostCategories WHERE PostID = ?", [$post_id]);
-
-    foreach (normalize_id_list($category_ids) as $category_id) {
-        db_query("INSERT INTO PostCategories (CategoryID, PostID) VALUES (?, ?)", [$category_id, $post_id]);
-    }
+    db_query("UPDATE Posts SET CategoryID = ? WHERE PostID = ?", [$category_ids[0], $post_id]);
 }
 
 function sync_post_tags($post_id, $tag_ids) {
@@ -307,10 +381,10 @@ function sync_post_tags($post_id, $tag_ids) {
 }
 
 function posts_select_sql($where = "") {
-    $select = "p.PostID, p.UserID, p.Title, p.Content";
+    $select = "p.PostID, p.UserID, p.Title, p.Content, p.CategoryID";
     $from = "Posts p";
     $joins = "";
-    $group_by = " GROUP BY p.PostID, p.UserID, p.Title, p.Content";
+    $group_by = " GROUP BY p.PostID, p.UserID, p.Title, p.Content, p.CategoryID";
 
     if (table_exists("Users")) {
         $select .= ", u.Username";
@@ -318,12 +392,12 @@ function posts_select_sql($where = "") {
         $group_by .= ", u.Username";
     }
 
-    if (table_exists("Categories") && table_exists("PostCategories")) {
-        $select .= ", MIN(c.CategoryID) AS CategoryID, GROUP_CONCAT(DISTINCT c.Category ORDER BY c.Category SEPARATOR ', ') AS CategoryName";
-        $joins .= " LEFT JOIN PostCategories pc ON p.PostID = pc.PostID";
-        $joins .= " LEFT JOIN Categories c ON pc.CategoryID = c.CategoryID";
+    if (table_exists("Categories")) {
+        $select .= ", c.Category AS CategoryName";
+        $joins .= " LEFT JOIN Categories c ON p.CategoryID = c.CategoryID";
+        $group_by .= ", c.Category";
     } else {
-        $select .= ", NULL AS CategoryID, NULL AS CategoryName";
+        $select .= ", NULL AS CategoryName";
     }
 
     if (table_exists("Tags") && table_exists("PostTags")) {

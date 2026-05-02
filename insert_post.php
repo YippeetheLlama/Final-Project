@@ -12,18 +12,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $title = $_POST["title"] ?? "";
     $content = $_POST["content"] ?? "";
     $userid = current_user_id();
-    $categoryids = normalize_id_list($_POST["categoryids"] ?? ($_POST["categoryid"] ?? []));
+    $categoryids = normalize_id_list($_POST["categoryid"] ?? []);
     $tagids = normalize_id_list($_POST["tagids"] ?? []);
 
     if ($title === "" || $content === "" || $userid === "" || !$categoryids) {
         set_flash("Please fill out every field before submitting the post.", "error");
     } else {
-        $sql = "INSERT INTO Posts (UserID, Title, Content)
-                VALUES (?, ?, ?)";
+        $sql = "INSERT INTO Posts (UserID, CategoryID, Title, Content)
+                VALUES (?, ?, ?, ?)";
 
-        if (db_query($sql, [(int) $userid, $title, $content])) {
+        if (db_query($sql, [(int) $userid, $categoryids[0], $title, $content])) {
             $new_post_id = $conn->insert_id;
-            sync_post_categories($new_post_id, $categoryids);
             sync_post_tags($new_post_id, $tagids);
             set_flash("New post created.", "success");
             header("Location: index.php");
@@ -48,17 +47,18 @@ render_header("Add New Post");
         <?php echo csrf_field(); ?>
 
         <div class="form-row">
-            <label for="categoryids">Categories</label>
+            <label for="categoryid">Category</label>
             <?php if ($categories): ?>
-                <select id="categoryids" name="categoryids[]" multiple required>
+                <select id="categoryid" name="categoryid" required>
+                    <option value="">Select a category</option>
                     <?php foreach ($categories as $category): ?>
-                        <option value="<?php echo h($category["CategoryID"]); ?>" <?php echo in_array($category["CategoryID"], normalize_id_list($_POST["categoryids"] ?? ($_POST["categoryid"] ?? []))) ? "selected" : ""; ?>>
+                        <option value="<?php echo h($category["CategoryID"]); ?>" <?php echo in_array($category["CategoryID"], normalize_id_list($_POST["categoryid"] ?? [])) ? "selected" : ""; ?>>
                             <?php echo h($category["CategoryName"]); ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
             <?php else: ?>
-                <input type="number" id="categoryids" name="categoryid" value="<?php echo h($_POST["categoryid"] ?? ""); ?>" required>
+                <input type="number" id="categoryid" name="categoryid" value="<?php echo h($_POST["categoryid"] ?? ""); ?>" required>
             <?php endif; ?>
         </div>
 

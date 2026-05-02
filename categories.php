@@ -4,9 +4,9 @@ require_once __DIR__ . "/functions.php";
 $categories = [];
 
 if (table_exists("Categories")) {
-    $sql = "SELECT c.CategoryID, c.Category AS CategoryName, COUNT(pc.PostID) AS PostCount
+    $sql = "SELECT c.CategoryID, c.Category AS CategoryName, COUNT(p.PostID) AS PostCount
             FROM Categories c
-            LEFT JOIN PostCategories pc ON c.CategoryID = pc.CategoryID
+            LEFT JOIN Posts p ON c.CategoryID = p.CategoryID
             GROUP BY c.CategoryID, c.Category
             ORDER BY c.Category";
     $result = db_query($sql);

@@ -18,11 +18,11 @@ This repository now includes a PHP/MySQL blogging platform starter that targets 
 - `admin-dashboard.html`, `honeypot.php`, `.htaccess`, and `security.php`: unlinked honeypot endpoint and IP blocklist enforcement.
 - `styles.css`: shared styling for the PHP and HTML pages.
 
-The PHP pages assume the database tables and columns follow the final ERD/schema used for this project, including `Users(UserID, Username, PasswordHash, Email, Admin)`, `Posts(PostID, Title, Content, UserID)`, `Comments(CommentID, Comment, PostID)`, `Categories(CategoryID, Category)`, `Tags(TagID, Tag)`, `PostCategories(PostCategoryID, CategoryID, PostID)`, and `PostTags(PostTagID, TagID, PostID)`. Per the assignment rules, the database design and SQL scripts should be created by the student.
+The PHP pages assume the database tables and columns follow the final ERD/schema used for this project, including `Users(UserID, Username, PasswordHash, Email, Admin)`, `Categories(CategoryID, Category)`, `Posts(PostID, Title, Content, UserID, CategoryID)`, `Comments(CommentID, Comment, PostID, UserID)`, `Tags(TagID, Tag)`, and `PostTags(PostTagID, TagID, PostID)`. Per the assignment rules, the database design and SQL scripts should be created by the student.
 
 To run it on the class server, upload these files to `/var/www/html`, then set `BLOG_DB_HOST`, `BLOG_DB_PORT`, `BLOG_DB_NAME`, `BLOG_DB_USER`, and `BLOG_DB_PASS` as environment variables or create an ignored `config.local.php` from `config.example.php`. After your database tables exist, visit `index.php` in the browser. Admin users can visit `setup_check.php` to confirm the PHP pages can see the expected table and column names.
 
-The unlinked `admin-dashboard.html` route is a honeypot. Apache rewrites that URL to `honeypot.php`, records the visitor IP in ignored `blocked_ips.json`, and `security.php` blocks that IP from the PHP application afterward. To test it without locking out your own address, temporarily set `BLOG_HONEYPOT_ALLOW_IPS` to your IP address.
+The unlinked `admin-dashboard.html` route is a honeypot. Apache rewrites that URL to `honeypot.php`, records the visitor IP in ignored `blocked_ips.json`, and `security.php` blocks that IP from the PHP application afterward. Login throttling uses ignored `login_attempts.json`. To test the honeypot without locking out your own address, temporarily set `BLOG_HONEYPOT_ALLOW_IPS` to your IP address.
 
 
 ## AI Guidance

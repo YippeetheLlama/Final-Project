@@ -11,3 +11,4 @@ config.local.php
 .env
 .env.*
 blocked_ips.json
+login_attempts.json

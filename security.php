@@ -1,14 +1,28 @@
 <?php
 define("BLOCKLIST_FILE", __DIR__ . "/blocked_ips.json");
 
+function local_security_setting($key, $default = "") {
+    static $local_config = null;
+
+    if ($local_config === null) {
+        $config_path = __DIR__ . "/config.local.php";
+        $local_config = file_exists($config_path) ? require $config_path : [];
+        if (!is_array($local_config)) {
+            $local_config = [];
+        }
+    }
+
+    return $local_config[$key] ?? $default;
+}
+
 function client_ip() {
     return $_SERVER["REMOTE_ADDR"] ?? "unknown";
 }
 
 function honeypot_allowlist() {
     $raw = getenv("BLOG_HONEYPOT_ALLOW_IPS");
-    if (!$raw && function_exists("db_setting")) {
-        $raw = db_setting("BLOG_HONEYPOT_ALLOW_IPS");
+    if (!$raw) {
+        $raw = local_security_setting("BLOG_HONEYPOT_ALLOW_IPS");
     }
 
     if (!$raw) {

@@ -32,10 +32,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         db_query("DELETE FROM PostTags WHERE PostID = ?", [$post_id_int]);
     }
 
-    if (table_exists("PostCategories")) {
-        db_query("DELETE FROM PostCategories WHERE PostID = ?", [$post_id_int]);
-    }
-
     if (db_query("DELETE FROM Posts WHERE PostID = ?", [$post_id_int])) {
         set_flash("Post deleted.", "success");
         header("Location: dashboard.php");
@@ -56,7 +52,7 @@ render_header("Delete Post");
 
 <section class="panel">
     <h2><?php echo h($post["Title"]); ?></h2>
-    <p>This will remove the post from Posts and its related category, tag, and comment rows.</p>
+    <p>This will remove the post from Posts and its related tag and comment rows.</p>
     <form class="inline-form" action="delete_post.php" method="post">
         <?php echo csrf_field(); ?>
         <input type="hidden" name="post_id" value="<?php echo h($post["PostID"]); ?>">

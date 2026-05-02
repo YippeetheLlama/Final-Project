@@ -27,18 +27,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     $title = $_POST["title"] ?? "";
     $content = $_POST["content"] ?? "";
-    $categoryids = normalize_id_list($_POST["categoryids"] ?? ($_POST["categoryid"] ?? []));
+    $categoryids = normalize_id_list($_POST["categoryid"] ?? []);
     $tagids = normalize_id_list($_POST["tagids"] ?? []);
 
     if ($title === "" || $content === "" || !$categoryids) {
         set_flash("Please fill out every field before saving.", "error");
     } else {
         $sql = "UPDATE Posts
-                SET Title = ?, Content = ?
+                SET Title = ?, Content = ?, CategoryID = ?
                 WHERE PostID = ?";
 
-        if (db_query($sql, [$title, $content, (int) $post["PostID"]])) {
-            sync_post_categories($post["PostID"], $categoryids);
+        if (db_query($sql, [$title, $content, $categoryids[0], (int) $post["PostID"]])) {
             sync_post_tags($post["PostID"], $tagids);
             set_flash("Post updated.", "success");
             header("Location: post.php?id=" . urlencode($post["PostID"]));
@@ -51,7 +50,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
 $form_title = $_POST["title"] ?? $post["Title"];
 $form_content = $_POST["content"] ?? $post["Content"];
-$form_categories = normalize_id_list($_POST["categoryids"] ?? ($_POST["categoryid"] ?? get_post_category_ids($post["PostID"])));
+$form_categories = normalize_id_list($_POST["categoryid"] ?? get_post_category_ids($post["PostID"]));
 $form_tags = normalize_id_list($_POST["tagids"] ?? get_post_tag_ids($post["PostID"]));
 
 render_header("Edit Post");
@@ -69,9 +68,9 @@ render_header("Edit Post");
         <input type="hidden" name="post_id" value="<?php echo h($post["PostID"]); ?>">
 
         <div class="form-row">
-            <label for="categoryids">Categories</label>
+            <label for="categoryid">Category</label>
             <?php if ($categories): ?>
-                <select id="categoryids" name="categoryids[]" multiple required>
+                <select id="categoryid" name="categoryid" required>
                     <?php foreach ($categories as $category): ?>
                         <option value="<?php echo h($category["CategoryID"]); ?>" <?php echo in_array($category["CategoryID"], $form_categories) ? "selected" : ""; ?>>
                             <?php echo h($category["CategoryName"]); ?>
@@ -79,7 +78,7 @@ render_header("Edit Post");
                     <?php endforeach; ?>
                 </select>
             <?php else: ?>
-                <input type="number" id="categoryids" name="categoryid" value="<?php echo h($form_categories[0] ?? ""); ?>" required>
+                <input type="number" id="categoryid" name="categoryid" value="<?php echo h($form_categories[0] ?? ""); ?>" required>
             <?php endif; ?>
         </div>
 

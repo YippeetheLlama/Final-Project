@@ -15,10 +15,7 @@ if ($post_count_result) {
 }
 
 if (table_exists("Comments")) {
-    $comment_count_result = db_query("SELECT COUNT(*) AS TotalComments
-        FROM Comments c
-        INNER JOIN Posts p ON c.PostID = p.PostID
-        WHERE p.UserID = ?", [$user_id]);
+    $comment_count_result = db_query("SELECT COUNT(*) AS TotalComments FROM Comments WHERE UserID = ?", [$user_id]);
     if ($comment_count_result) {
         $comment_count_row = $comment_count_result->fetch_assoc();
         $comment_count = $comment_count_row["TotalComments"] ?? 0;

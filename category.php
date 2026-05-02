@@ -12,11 +12,7 @@ if ($category_id !== "") {
             $category = $category_result->fetch_assoc();
         }
 
-        $posts = db_query(posts_select_sql("WHERE EXISTS (
-            SELECT 1 FROM PostCategories pc_filter
-            WHERE pc_filter.PostID = p.PostID
-            AND pc_filter.CategoryID = ?
-        )"), [(int) $category_id]);
+        $posts = db_query(posts_select_sql("WHERE p.CategoryID = ?"), [(int) $category_id]);
     }
 }
 
