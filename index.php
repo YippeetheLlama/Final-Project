@@ -3,15 +3,16 @@ require_once __DIR__ . "/functions.php";
 
 $result = db_query(posts_select_sql());
 
-render_header("View Posts");
+render_header("All Posts");
 ?>
 <section class="page-heading">
     <div>
-        <h1>Blog Posts</h1>
-        <p>This page lists every post currently stored in the database.</p>
+        <h1>All Blog Posts</h1>
+        <p>Browse the newest entries in the blog database.</p>
     </div>
     <div class="actions">
         <a class="button" href="insert_post.php">New Post</a>
+        <a class="button secondary" href="post_search.php">Search</a>
     </div>
 </section>
 
@@ -22,7 +23,7 @@ render_header("View Posts");
         <?php endwhile; ?>
     </div>
 <?php else: ?>
-    <div class="empty-state">No posts found.</div>
+    <div class="empty-state">No posts found. Add your first blog post to get started.</div>
 <?php endif; ?>
 
 <?php

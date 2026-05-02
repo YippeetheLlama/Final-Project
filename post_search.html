@@ -1,14 +1,23 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Search Posts</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <h1>Search Blog Posts</h1>
-    <form action="post_search.php" method="get">
-        <label for="keyword">Search Keyword:</label><br>
-        <input type="text" id="keyword" name="keyword"><br>
-        <input type="submit" value="Search">
-    </form>
+    <main class="container page">
+        <section class="panel">
+            <h1>Search Blog Posts</h1>
+            <form class="form" action="post_search.php" method="get">
+                <div class="form-row">
+                    <label for="keyword">Search keyword</label>
+                    <input type="text" id="keyword" name="keyword" required>
+                </div>
+                <input type="submit" value="Search">
+            </form>
+        </section>
+    </main>
 </body>
 </html>

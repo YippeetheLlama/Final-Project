@@ -1,8 +1,13 @@
 dataset_generation.py
 dataset_generation2.py
 dataset_generation.txt
+.DS_Store
 .venv
 __pycache__
 secure_search.php
 unnormalized_blog_data_wpasswords.csv
 password_generator.py
+config.local.php
+.env
+.env.*
+blocked_ips.json

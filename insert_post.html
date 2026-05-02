@@ -1,20 +1,18 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add New Post</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <h1>Add New Blog Post</h1>
-    <form action="insert_post.php" method="post">
-        <label for="userid">User ID:</label><br>
-        <input type="text" id="userid" name="userid"><br>
-        <label for="categoryid">Category ID:</label><br>
-        <input type="text" id="categoryid" name="categoryid"><br>
-        <label for="title">Title:</label><br>
-        <input type="text" id="title" name="title"><br>
-        <label for="content">Content:</label><br>
-        <textarea id="content" name="content"></textarea><br>
-        <input type="submit" value="Submit">
-    </form>
+    <main class="container page">
+        <section class="panel">
+            <h1>Add New Blog Post</h1>
+            <p>Use the PHP post form so your logged-in account and CSRF token are verified.</p>
+            <a class="button" href="insert_post.php">Open New Post Form</a>
+        </section>
+    </main>
 </body>
 </html>

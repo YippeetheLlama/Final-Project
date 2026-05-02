@@ -1,5 +1,29 @@
 # Implementing and Securing a Blogging Platform
 
+## Current Application Files
+
+This repository now includes a PHP/MySQL blogging platform starter that targets the course LAMP server.
+
+- `index.php` and `get_posts.php`: display blog posts from `Posts`.
+- `post.php`: displays one post and, when a `Comments` table exists, shows/adds comments.
+- `insert_post.php`, `edit_post.php`, and `delete_post.php`: create and manage blog posts.
+- `login.php`, `logout.php`, and `register.php`: basic user account flow using the `Users` table.
+- `post_search.php`: searches post titles and content.
+- `categories.php` and `category.php`: browse posts by category when a `Categories` table exists.
+- `user.php` and `dashboard.php`: view author posts and manage the logged-in user's posts.
+- `setup_check.php`: read-only table/column check for the expected database shape.
+- `functions.php`: shared layout, session helpers, post rendering, category/tag helpers, and common post queries.
+- `db_connect.php`: MySQL connection settings for the assigned `s011` server/database.
+- `config.example.php`: template for local database settings; copy it to ignored `config.local.php` on the server or set environment variables.
+- `admin-dashboard.html`, `honeypot.php`, `.htaccess`, and `security.php`: unlinked honeypot endpoint and IP blocklist enforcement.
+- `styles.css`: shared styling for the PHP and HTML pages.
+
+The PHP pages assume the database tables and columns follow the final ERD/schema used for this project, including `Users(UserID, Username, PasswordHash, Email, Admin)`, `Posts(PostID, Title, Content, UserID)`, `Comments(CommentID, Comment, PostID)`, `Categories(CategoryID, Category)`, `Tags(TagID, Tag)`, `PostCategories(PostCategoryID, CategoryID, PostID)`, and `PostTags(PostTagID, TagID, PostID)`. Per the assignment rules, the database design and SQL scripts should be created by the student.
+
+To run it on the class server, upload these files to `/var/www/html`, then set `BLOG_DB_HOST`, `BLOG_DB_PORT`, `BLOG_DB_NAME`, `BLOG_DB_USER`, and `BLOG_DB_PASS` as environment variables or create an ignored `config.local.php` from `config.example.php`. After your database tables exist, visit `index.php` in the browser. Admin users can visit `setup_check.php` to confirm the PHP pages can see the expected table and column names.
+
+The unlinked `admin-dashboard.html` route is a honeypot. Apache rewrites that URL to `honeypot.php`, records the visitor IP in ignored `blocked_ips.json`, and `security.php` blocks that IP from the PHP application afterward. To test it without locking out your own address, temporarily set `BLOG_HONEYPOT_ALLOW_IPS` to your IP address.
+
 
 ## AI Guidance
 I encourage you to use ChatGPT etc. for all aspects of this project EXCEPT for:
